@@ -15,23 +15,43 @@ export const useAddFood = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (newFood: FoodEntryCreate) => {
-      // Zauważ ścieżkę: wysyłamy email w URL, a obiekt newFood w Body
-      const response = await api.post(`/add-food?email=${FIXED_EMAIL}`, newFood);
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file); // 'file' musi pasować do nazwy w FastAPI
+
+      // Email przesyłamy w URL tak jak wcześniej
+      const response = await api.post(`/add-food-image?email=test@example.com`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     },
     onSuccess: () => {
-      // To odświeży listę jedzenia, gdy ją stworzymy (klucz 'food-list')
-      queryClient.invalidateQueries({ queryKey: ['food-list'] });
+      queryClient.invalidateQueries({ queryKey: ['user-foods'] });
     },
   });
 };
 
+export const useDeleteFood = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (foodId: number) => {
+            const response = await api.delete(`/delete-food/${foodId}`);
+            return response.data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['user-foods']})
+        }
+    })
+}
+
 export const useFoodList = () => {
     return useQuery({
-        queryKey: ['food-list'],
+        queryKey: ['user-foods'],
         queryFn: async () => {
-            const response = await api.get(`/list-foods?email=${FIXED_EMAIL}`);
+            const response = await api.get(`/user-foods?email=${FIXED_EMAIL}`);
             return response.data;
         },
         refetchOnWindowFocus: false, // Nie odświeżaj przy każdym powrocie do zakładki

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useHealth } from './hooks/useHealth';
-import { useAddFood, useFoodList, type FoodEntryCreate } from './hooks/useFood';
+import { useAddFood, useDeleteFood, useFoodList } from './hooks/useFood';
+import type { FoodEntryCreate } from './hooks/useFood';
 
 function App() {
   // 1. Server status hook
@@ -9,20 +10,22 @@ function App() {
   // 2. Food adding hook
   const { mutate, isPending: isAddingFood } = useAddFood();
 
+  // 3. Food deletion food
+  const { mutate: deleteFood, isPending: isDeleting } = useDeleteFood();
+
   // 3. Food list hook
   const { data: foodList, isLoading: isFoodListLoading } = useFoodList();
 
   // Form state
-  const [formData, setFormData] = useState<FoodEntryCreate>({
-    food_name: '', calories: 0, protein: 0, fat: 0, carbohydrates: 0
-  });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    mutate(formData, {
+    if (!selectedFile) return;
+    mutate(selectedFile, {
       onSuccess: () => {
-        setFormData({ food_name: '', calories: 0, protein: 0, fat: 0, carbohydrates: 0 });
-        alert("Added!");
+        setSelectedFile(null);
+        (e.target as HTMLFormElement).reset();
       }
     });
   };
@@ -33,7 +36,7 @@ function App() {
         
         {/* Server Status Section */}
         <header className="flex justify-between items-center p-4 bg-slate-800 rounded-lg border border-slate-700">
-          <h1 className="text-xl font-bold italic text-blue-400">Macro Lens 🔍</h1>
+          <h1 className="text-xl font-bold text-blue-400">Macro Lens 🔍</h1>
           <div className="flex items-center gap-2 text-sm">
             <span className={`w-3 h-3 rounded-full ${health?.status === 'ok' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
             {isHealthLoading ? 'Checking...' : (health?.status === 'ok' ? 'Server online' : 'Server offline')}
@@ -44,34 +47,27 @@ function App() {
         <section className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
           <h2 className="text-lg font-semibold mb-4 text-emerald-400">What did you eat today?</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input 
-              type="text" 
-              placeholder="Meal name"
-              value={formData.food_name}
-              onChange={e => setFormData({...formData, food_name: e.target.value})}
-              className="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              required
-            />
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 uppercase font-bold">Calories</label>
-                <input 
-                  type="number" 
-                  value={formData.calories}
-                  onChange={e => setFormData({...formData, calories: Number(e.target.value)})}
-                  className="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg"
-                />
-              </div>
-              {/* You can add the remaining fields (Protein, Fat, Carbs) here in a similar way */}
-            </div>
+            <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer bg-slate-900 hover:border-blue-500 transition-colors">
+              {selectedFile ? (
+                <span className="text-slate-300 text-sm font-medium">{selectedFile.name}</span>
+              ) : (
+                <span className="text-slate-500 text-sm">Click to upload a food photo</span>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
+                required
+              />
+            </label>
 
             <button 
               type="submit" 
               disabled={isAddingFood || health?.status !== 'ok'}
               className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 py-3 rounded-lg font-bold transition-all transform active:scale-95"
             >
-              {isAddingFood ? 'Sending data...' : 'Add to journal'}
+              {isAddingFood ? 'Analysing image...' : 'Upload & analyse'}
             </button>
           </form>
         </section>
@@ -92,6 +88,9 @@ function App() {
                     <span><span className="text-slate-200 font-bold">{entry.fat}g</span> fat</span>
                     <span><span className="text-slate-200 font-bold">{entry.carbohydrates}g</span> carbs</span>
                   </div>
+                  <button onClick={() => deleteFood(entry.id)} disabled={isDeleting} className="p-2 text-slate-500 hover:text-red-400 transition-colors hover:cursor-pointer" title="delete_entry">
+                    <span className="text-lg">🗑️</span>
+                  </button>
                 </li>
               ))}
             </ul>
