@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel, Session, select
 from database import engine
 from models import User, FoodEntry, FoodEntryCreate
@@ -12,6 +13,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/api/health-check")
+def health_check():
+    return {"status": "ok", "message": "API is running!"}
 
 @app.post("/add-food")
 def add_food(email:str, food_data: FoodEntryCreate):
