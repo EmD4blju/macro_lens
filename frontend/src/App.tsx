@@ -10,7 +10,7 @@ function App() {
   const { data: health, isLoading: isHealthLoading } = useHealth();
   
   // 2. Food adding hook
-  const { mutate, isPending: isAddingFood } = useAddFood();
+  const { mutate: addFood, isPending: isAddingFood } = useAddFood();
 
   // 3. Food deletion food
   const { mutate: deleteFood, isPending: isDeleting } = useDeleteFood();
@@ -24,7 +24,7 @@ function App() {
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedFile) return;
-    mutate(selectedFile, {
+    addFood(selectedFile, {
       onSuccess: () => {
         setSelectedFile(null);
         (e.target as HTMLFormElement).reset();
