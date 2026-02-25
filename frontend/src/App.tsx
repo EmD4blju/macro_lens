@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useHealth } from './hooks/useHealth';
 import { useAddFood, useDeleteFood, useFoodList } from './hooks/useFood';
 import type { FoodEntryCreate } from './hooks/useFood';
+import { FaRegTrashCan } from "react-icons/fa6";
+
 
 function App() {
   // 1. Server status hook
@@ -89,7 +91,7 @@ function App() {
                     <span><span className="text-slate-200 font-bold">{entry.carbohydrates}g</span> carbs</span>
                   </div>
                   <button onClick={() => deleteFood(entry.id)} disabled={isDeleting} className="p-2 text-slate-500 hover:text-red-400 transition-colors hover:cursor-pointer" title="delete_entry">
-                    <span className="text-lg">🗑️</span>
+                    <span className="text-lg"><FaRegTrashCan/></span>
                   </button>
                 </li>
               ))}
