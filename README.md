@@ -10,7 +10,7 @@ Macro Lens is an AI-powered nutrition tracker that simplifies food logging. By l
 
 ## Technology Stack
 
--   **Backend**: FastAPI, SQLModel (SQLite), LangChain
+-   **Backend**: FastAPI, SQLModel (PostgreSQL), LangChain
 -   **Frontend**: React, TypeScript, Vite, Tailwind CSS
 -   **AI Model**: Google Gemini 2.5 Flash (via `langchain-google-genai`)
 
