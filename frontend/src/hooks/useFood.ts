@@ -47,13 +47,15 @@ export const useDeleteFood = () => {
     })
 }
 
-export const useFoodList = () => {
+export const useFoodList = (date: Date) => {
+    const entryDate = date.toISOString().split('T')[0];
+
     return useQuery({
-        queryKey: ['user-foods'],
+        queryKey: ['user-foods', entryDate],
         queryFn: async () => {
-            const response = await api.get(`/user-foods?email=${FIXED_EMAIL}`);
+            const response = await api.get(`/user-foods/${FIXED_EMAIL}?entry_date=${entryDate}`);
             return response.data;
         },
-        refetchOnWindowFocus: false, // Nie odświeżaj przy każdym powrocie do zakładki
+        refetchOnWindowFocus: false,
     });
 }

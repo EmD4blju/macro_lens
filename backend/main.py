@@ -1,4 +1,6 @@
 from contextlib import asynccontextmanager
+from datetime import date
+from typing import Optional
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel, Session, select
@@ -91,13 +93,19 @@ def list_users():
     with Session(engine) as session:
         return session.exec(select(User)).all()
     
-@app.get("/user-foods")
-def get_user_foods(email: str):
+@app.get("/user-foods/{email}")
+def get_user_foods(email: str, entry_date: date):
     with Session(engine) as session:
         user = session.exec(select(User).where(User.email == email)).first()
         if not user:
             return {"error": "User not found"}
-        return user.food_entries
+        
+        query = select(FoodEntry).where(
+            FoodEntry.user_id == user.id,
+            FoodEntry.creation_date == entry_date
+        )
+        
+        return session.exec(query).all()
     
     
 if __name__ == "__main__":

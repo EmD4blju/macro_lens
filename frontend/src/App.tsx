@@ -6,6 +6,10 @@ import { FaRegTrashCan } from "react-icons/fa6";
 
 
 function App() {
+  // Form state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
   // 1. Server status hook
   const { data: health, isLoading: isHealthLoading } = useHealth();
   
@@ -16,10 +20,11 @@ function App() {
   const { mutate: deleteFood, isPending: isDeleting } = useDeleteFood();
 
   // 3. Food list hook
-  const { data: foodList, isLoading: isFoodListLoading } = useFoodList();
+  const { data: foodList, isLoading: isFoodListLoading } = useFoodList(selectedDate);
 
-  // Form state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const goToPrevDay = () => setSelectedDate(d => { const nd = new Date(d); nd.setDate(nd.getDate() - 1); return nd; });
+  const goToNextDay = () => setSelectedDate(d => { const nd = new Date(d); nd.setDate(nd.getDate() + 1); return nd; });
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -76,7 +81,22 @@ function App() {
 
         {/* Food Log */}
         <section className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
-          <h2 className="text-lg font-semibold mb-4 text-emerald-400">Today's log</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-emerald-400">
+              {isToday ? "Today's log" : selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            </h2>
+            <div className="flex items-center gap-2">
+              <button onClick={goToPrevDay} className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors text-slate-300">&#8249;</button>
+              <input
+                type="date"
+                value={selectedDate.toISOString().split('T')[0]}
+                max={new Date().toISOString().split('T')[0]}
+                onChange={e => setSelectedDate(new Date(e.target.value + 'T00:00:00'))}
+                className="bg-slate-700 text-slate-300 text-sm rounded-lg px-2 py-1 border border-slate-600 cursor-pointer"
+              />
+              <button onClick={goToNextDay} disabled={isToday} className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-slate-300">&#8250;</button>
+            </div>
+          </div>
           {isFoodListLoading ? (
             <p className="text-slate-400 text-sm">Loading entries...</p>
           ) : foodList?.length > 0 ? (

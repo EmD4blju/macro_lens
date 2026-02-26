@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import List, Optional
+from datetime import date
 
 
 class User(SQLModel, table=True):
@@ -16,6 +17,7 @@ class FoodEntry(SQLModel, table=True):
     protein: float
     fat: float
     carbohydrates: float
+    creation_date: date = Field(default_factory=date.today)
     user_id: int = Field(foreign_key="user.id")
     user: Optional[User] = Relationship(back_populates="food_entries")
 
