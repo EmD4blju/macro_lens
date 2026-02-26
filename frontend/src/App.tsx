@@ -74,7 +74,13 @@ function App() {
               disabled={isAddingFood || health?.status !== 'ok'}
               className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 py-3 rounded-lg font-bold transition-all transform active:scale-95"
             >
-              {isAddingFood ? 'Analysing image...' : 'Upload & analyse'}
+              {isAddingFood ? (
+                <span className="flex items-center justify-center gap-1">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></span>
+                </span>
+              ) : 'Upload & analyse'}
             </button>
           </form>
         </section>
