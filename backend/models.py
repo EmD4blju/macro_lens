@@ -23,9 +23,9 @@ class FoodEntry(SQLModel, table=True):
 
 
 class FoodEntryCreate(SQLModel):
-    food_name: str
-    description: Optional[str] = None
-    calories: float
-    protein: float
-    fat: float
-    carbohydrates: float
+    food_name: str = Field(description="The full common name of the dish or food item (e.g. 'Grilled chicken breast with roasted vegetables')")
+    description: Optional[str] = Field(default=None, description="A detailed 2-3 sentence description of the dish covering its main ingredients, preparation style, and any notable nutritional characteristics such as being high in protein, rich in fiber, or calorie-dense")
+    calories: float = Field(description="Total estimated calories (kcal) for the entire portion visible in the image")
+    protein: float = Field(description="Total estimated protein content in grams for the entire portion")
+    fat: float = Field(description="Total estimated fat content in grams for the entire portion")
+    carbohydrates: float = Field(description="Total estimated carbohydrate content in grams for the entire portion")
