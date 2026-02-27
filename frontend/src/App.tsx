@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { useHealth } from './hooks/useHealth';
 import { useAddFood, useDeleteFood, useFoodList } from './hooks/useFood';
 import type { FoodEntry } from './hooks/useFood';
-import { FaRegTrashCan } from "react-icons/fa6";
+import { FaRegTrashCan, FaArrowDown } from "react-icons/fa6";
+
 
 
 function App() {
   // Form state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   // 1. Server status hook
   const { data: health, isLoading: isHealthLoading } = useHealth();
@@ -39,6 +42,33 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-8">
+
+      {/* Delete confirmation modal */}
+      {pendingDeleteId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-6 w-80 flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-base font-semibold text-slate-100">Delete entry</h3>
+              <p className="text-sm text-slate-400">Are you sure you want to delete this entry? This action cannot be undone.</p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setPendingDeleteId(null)}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { deleteFood(pendingDeleteId); setPendingDeleteId(null); }}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-xl mx-auto space-y-8">
         
         {/* Server Status Section */}
@@ -108,17 +138,53 @@ function App() {
           ) : foodList?.length > 0 ? (
             <ul className="space-y-3">
               {foodList.map((entry: FoodEntry) => (
-                <li key={entry.id} className="flex justify-between items-center p-3 bg-slate-900 rounded-lg border border-slate-700">
-                  <span className="font-medium">{entry.food_name}</span>
-                  <div className="flex gap-4 text-xs text-slate-400">
-                    <span><span className="text-slate-200 font-bold">{entry.calories}</span> kcal</span>
-                    <span><span className="text-slate-200 font-bold">{entry.protein}g</span> protein</span>
-                    <span><span className="text-slate-200 font-bold">{entry.fat}g</span> fat</span>
-                    <span><span className="text-slate-200 font-bold">{entry.carbohydrates}g</span> carbs</span>
+                <li key={entry.id} className="bg-slate-900 rounded-lg border border-slate-700 overflow-hidden">
+                  {/* Main row */}
+                  <div className="flex justify-between items-center p-3">
+                    {/* Left: food name + macros */}
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium">{entry.food_name}</span>
+                      <div className="flex gap-3 text-xs text-slate-400">
+                        <span><span className="text-slate-200 font-bold">{entry.calories}</span> kcal</span>
+                        <span><span className="text-slate-200 font-bold">{entry.protein}g</span> protein</span>
+                        <span><span className="text-slate-200 font-bold">{entry.fat}g</span> fat</span>
+                        <span><span className="text-slate-200 font-bold">{entry.carbohydrates}g</span> carbs</span>
+                      </div>
+                    </div>
+
+                    {/* Right: controls */}
+                    <div className="flex items-center gap-1 ml-4 shrink-0">
+                      {entry.description && (
+                        <button
+                          onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
+                          className="p-2 text-slate-500 hover:text-blue-400 transition-colors cursor-pointer"
+                          title="Toggle description"
+                        >
+                          <span
+                            className="text-sm inline-block transition-transform duration-300"
+                            style={{ transform: expandedId === entry.id ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                          ><FaArrowDown/></span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setPendingDeleteId(entry.id)}
+                        disabled={isDeleting}
+                        className="p-2 text-slate-500 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-30"
+                        title="Delete entry"
+                      >
+                        <span className="text-lg"><FaRegTrashCan /></span>
+                      </button>
+                    </div>
                   </div>
-                  <button onClick={() => deleteFood(entry.id)} disabled={isDeleting} className="p-2 text-slate-500 hover:text-red-400 transition-colors hover:cursor-pointer" title="delete_entry">
-                    <span className="text-lg"><FaRegTrashCan/></span>
-                  </button>
+
+                  {/* Pull-down description */}
+                  <div className={`grid transition-all duration-300 ease-in-out ${expandedId === entry.id ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                    <div className="overflow-hidden">
+                      <p className="px-3 pb-3 text-xs text-slate-400 italic border-t border-slate-700 pt-2 leading-relaxed">
+                        {entry.description}
+                      </p>
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>
