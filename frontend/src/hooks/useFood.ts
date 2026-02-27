@@ -1,14 +1,16 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import api from '../api/axios'; // Importujesz instancję axiosa którą zrobiliśmy wcześniej
+import api from '../api/axios';
 
-export interface FoodEntryCreate {
-  food_name: string;      // Zmienione z 'name'
-  description?: string;   // Opcjonalne (Optional[str])
+export interface FoodEntry {
+  id: number
+  food_name: string;
+  description?: string; 
   calories: number;
   protein: number;
   fat: number;
-  carbohydrates: number;  // Zmienione z 'carbs'
+  carbohydrates: number;
 }
+
 const FIXED_EMAIL = "test@example.com";
 
 export const useAddFood = () => {

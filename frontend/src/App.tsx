@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useHealth } from './hooks/useHealth';
 import { useAddFood, useDeleteFood, useFoodList } from './hooks/useFood';
-import type { FoodEntryCreate } from './hooks/useFood';
+import type { FoodEntry } from './hooks/useFood';
 import { FaRegTrashCan } from "react-icons/fa6";
 
 
@@ -72,7 +72,7 @@ function App() {
             <button 
               type="submit" 
               disabled={isAddingFood || health?.status !== 'ok'}
-              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 py-3 rounded-lg font-bold transition-all transform active:scale-95"
+              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 py-3 rounded-lg font-bold transition-all transform active:scale-95 cursor-pointer"
             >
               {isAddingFood ? (
                 <span className="flex items-center justify-center gap-1">
@@ -92,7 +92,7 @@ function App() {
               {isToday ? "Today's log" : selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
             </h2>
             <div className="flex items-center gap-2">
-              <button onClick={goToPrevDay} className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors text-slate-300">&#8249;</button>
+              <button onClick={goToPrevDay} className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors text-slate-300 cursor-pointer">&#8249;</button>
               <input
                 type="date"
                 value={selectedDate.toISOString().split('T')[0]}
@@ -100,15 +100,15 @@ function App() {
                 onChange={e => setSelectedDate(new Date(e.target.value + 'T00:00:00'))}
                 className="bg-slate-700 text-slate-300 text-sm rounded-lg px-2 py-1 border border-slate-600 cursor-pointer"
               />
-              <button onClick={goToNextDay} disabled={isToday} className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-slate-300">&#8250;</button>
+              <button onClick={goToNextDay} disabled={isToday} className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-slate-300 cursor-pointer">&#8250;</button>
             </div>
           </div>
           {isFoodListLoading ? (
             <p className="text-slate-400 text-sm">Loading entries...</p>
           ) : foodList?.length > 0 ? (
             <ul className="space-y-3">
-              {foodList.map((entry: FoodEntryCreate & { id: number }, index: number) => (
-                <li key={entry.id ?? index} className="flex justify-between items-center p-3 bg-slate-900 rounded-lg border border-slate-700">
+              {foodList.map((entry: FoodEntry) => (
+                <li key={entry.id} className="flex justify-between items-center p-3 bg-slate-900 rounded-lg border border-slate-700">
                   <span className="font-medium">{entry.food_name}</span>
                   <div className="flex gap-4 text-xs text-slate-400">
                     <span><span className="text-slate-200 font-bold">{entry.calories}</span> kcal</span>
