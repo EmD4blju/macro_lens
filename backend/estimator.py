@@ -13,17 +13,13 @@ class MacroEstimator:
         )
         self.structured_llm = self.llm.with_structured_output(FoodEntryCreate)
         
-    def _encode_image(self, image_path: str) -> str:
-        with open(image_path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode("utf-8")
-        
-    def estimate(self, image_path: str) -> FoodEntryCreate:
-        base64_img = self._encode_image(image_path)
+    async def estimate(self, image_bytes: bytes) -> FoodEntryCreate:
+        base64_image = base64.b64encode(image_bytes).decode("utf-8") 
         prompt = f"Analyze the following meal image and provide a structured breakdown of the food items and their estimated macros."
         
         message = HumanMessage(content=[
             {"type": "text", "text": prompt},
-            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}}
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
         ])
         
         return self.structured_llm.invoke([message])

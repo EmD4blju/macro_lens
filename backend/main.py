@@ -1,13 +1,11 @@
 from contextlib import asynccontextmanager
 from datetime import date
-from typing import Optional
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel, Session, select
 from database import engine
 from models import User, FoodEntry, FoodEntryCreate
 from estimator import MacroEstimator
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,21 +27,18 @@ def health_check():
     return {"status": "ok", "message": "API is running!"}
 
 @app.post("/add-food-image")
-def add_food_image(
+async def add_food_image(
     email: str,
     file: UploadFile = File(...)
 ):
-    
-    # 1. Save uploaded image to a temporary location
-    temp_file_path = f"/tmp/{file.filename}"
-    with open(temp_file_path, "wb") as buffer:
-        buffer.write(file.file.read())
-    
-    # 2. Estimate macros using the MacroEstimator
+    #~ Read incoming image bytes
+    image_bytes = await file.read()
+        
+    #~ Estimate macros using the MacroEstimator
     estimator = MacroEstimator()
-    food_entry_data = estimator.estimate(temp_file_path)
+    food_entry_data = await estimator.estimate(image_bytes)
     
-    # 3. Save the estimated food entry to the database
+    #~ Save the estimated food entry to the database
     with Session(engine) as session:
         user = session.exec(select(User).where(User.email == email)).first()
         if not user:
