@@ -115,6 +115,29 @@ function App() {
           </form>
         </section>
 
+        {/* Day Summary */}
+        <section className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+          <h2 className="text-lg font-semibold mb-4 text-emerald-400">
+            {isToday ? "Today's summary" : `Summary for ${selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
+          </h2>
+          <div className="grid grid-cols-4 gap-3 text-center">
+            {(
+              [
+                { label: 'Calories', value: (foodList ?? []).reduce((s: number, e: FoodEntry) => s + e.calories, 0), unit: 'kcal', color: 'text-yellow-400' },
+                { label: 'Protein',  value: (foodList ?? []).reduce((s: number, e: FoodEntry) => s + e.protein, 0),  unit: 'g',    color: 'text-blue-400'   },
+                { label: 'Fat',      value: (foodList ?? []).reduce((s: number, e: FoodEntry) => s + e.fat, 0),      unit: 'g',    color: 'text-orange-400' },
+                { label: 'Carbs',    value: (foodList ?? []).reduce((s: number, e: FoodEntry) => s + e.carbohydrates, 0), unit: 'g', color: 'text-purple-400' },
+              ] as const
+            ).map(({ label, value, unit, color }) => (
+              <div key={label} className="bg-slate-900 rounded-lg p-3 border border-slate-700 flex flex-col gap-1">
+                <span className="text-xs text-slate-400">{label}</span>
+                <span className={`text-xl font-bold ${color}`}>{value}</span>
+                <span className="text-xs text-slate-500">{unit}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Food Log */}
         <section className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
           <div className="flex items-center justify-between mb-4">
