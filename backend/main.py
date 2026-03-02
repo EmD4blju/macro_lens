@@ -10,7 +10,7 @@ from estimator import MacroEstimator
 from pydantic import BaseModel
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 import os
 
@@ -31,13 +31,13 @@ app.add_middleware(
 
 JWT_SIGNATURE = os.getenv("JWT_SIGNATURE")
 ALGORITHM = "HS256"
-TOKEN_EXPIRE_MINUTES = 20
+TOKEN_EXPIRE_HOURS = 4
 security = HTTPBearer()
 
 def create_access_token(email:str) -> str:
     payload = {
         "sub": email,
-        "exp": datetime.now() + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
+        "exp": datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
     }
     
     return jwt.encode(payload, JWT_SIGNATURE, ALGORITHM)
