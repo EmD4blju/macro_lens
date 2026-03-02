@@ -2,16 +2,13 @@ from contextlib import asynccontextmanager
 from datetime import date
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import SQLModel, Session, select
 from database import engine
 from models import User, FoodEntry, GoogleTokenRequest
 from estimator import MacroEstimator
-from pydantic import BaseModel
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
+from security import create_access_token, verify_token
 import os
 
 @asynccontextmanager
@@ -28,29 +25,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-JWT_SIGNATURE = os.getenv("JWT_SIGNATURE")
-ALGORITHM = "HS256"
-TOKEN_EXPIRE_HOURS = 4
-security = HTTPBearer()
-
-def create_access_token(email:str) -> str:
-    payload = {
-        "sub": email,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
-    }
-    
-    return jwt.encode(payload, JWT_SIGNATURE, ALGORITHM)
-
-def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
-    try:
-        payload = jwt.decode(credentials.credentials, JWT_SIGNATURE, ALGORITHM)
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        return email
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 @app.get("/api/health-check")
 def health_check():
