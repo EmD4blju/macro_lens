@@ -53,7 +53,7 @@ export const useFoodList = (date: Date) => {
     return useQuery({
         queryKey: ['user-foods', entryDate],
         queryFn: async () => {
-            const response = await api.get(`/user-foods/${getEmail()}?entry_date=${entryDate}`);
+            const response = await api.get(`/user-foods?entry_date=${entryDate}`);
             return response.data;
         },
         refetchOnWindowFocus: false,

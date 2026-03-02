@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 from datetime import date
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import SQLModel, Session, select
 from database import engine
 from models import User, FoodEntry, GoogleTokenRequest
@@ -10,7 +11,7 @@ from pydantic import BaseModel
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import jwt, JWTError
 import os
 
 @asynccontextmanager
@@ -31,6 +32,7 @@ app.add_middleware(
 JWT_SIGNATURE = os.getenv("JWT_SIGNATURE")
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_MINUTES = 20
+security = HTTPBearer()
 
 def create_access_token(email:str) -> str:
     payload = {
@@ -39,6 +41,18 @@ def create_access_token(email:str) -> str:
     }
     
     return jwt.encode(payload, JWT_SIGNATURE, ALGORITHM)
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    try:
+        print("Token received:", credentials.credentials[:20])  # first 20 chars
+        print("JWT_SIGNATURE:", JWT_SIGNATURE)
+        payload = jwt.decode(credentials.credentials, JWT_SIGNATURE, ALGORITHM)
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return email
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 @app.get("/api/health-check")
 def health_check():
@@ -72,8 +86,8 @@ def google_auth(body: GoogleTokenRequest):
 
 @app.post("/add-food-image")
 async def add_food_image(
-    email: str,
-    file: UploadFile = File(...)
+    email: str = Depends(verify_token),
+    file: UploadFile = File(...),
 ):
     #~ Read incoming image bytes
     image_bytes = await file.read()
@@ -98,7 +112,7 @@ async def add_food_image(
     return {"status": "processed"}
 
 @app.delete("/delete-food/{food_id}")
-def delete_food(food_id: int):
+def delete_food(food_id: int, email: str = Depends(verify_token)):
     with Session(engine) as session:
         food_entry = session.get(FoodEntry, food_id)
         if not food_entry:
@@ -106,19 +120,9 @@ def delete_food(food_id: int):
         session.delete(food_entry)
         session.commit()
         return {"status": "ok", "message": f"Deleted entry {food_id}"}
-
-@app.get("/list-foods")
-def get_foods():
-    with Session(engine) as session:
-        return session.exec(select(FoodEntry)).all()
     
-@app.get("/list-users")
-def list_users():
-    with Session(engine) as session:
-        return session.exec(select(User)).all()
-    
-@app.get("/user-foods/{email}")
-def get_user_foods(email: str, entry_date: date):
+@app.get("/user-foods")
+def get_user_foods(entry_date: date, email: str = Depends(verify_token)):
     with Session(engine) as session:
         user = session.exec(select(User).where(User.email == email)).first()
         if not user:
