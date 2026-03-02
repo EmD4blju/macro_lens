@@ -15,6 +15,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [pendingLogout, setPendingLogout] = useState<boolean>(false);
 
   // 1. Server status hook
   const { data: health, isLoading: isHealthLoading } = useHealth();
@@ -77,6 +78,33 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
       )}
+
+      {/* Logout confirmation modal */}
+      {pendingLogout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-6 w-80 flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-base font-semibold text-slate-100">Logout</h3>
+              <p className="text-sm text-slate-400">Are you sure you want to logout?</p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setPendingLogout(false)}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { handleLogout(); setPendingLogout(false); }}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-xl mx-auto space-y-8">
         
         {/* Server Status Section */}
@@ -85,7 +113,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-400">{getEmail()}</span>
             <button
-              onClick={handleLogout}
+              onClick={() => {setPendingLogout(true)}}
               className="text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
             >
                 <span className="text-2xl"><IoIosLogOut /></span>
