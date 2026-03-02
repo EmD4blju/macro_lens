@@ -3,11 +3,13 @@ import { useHealth } from './hooks/useHealth';
 import { useAddFood, useDeleteFood, useFoodList } from './hooks/useFood';
 import type { FoodEntry } from './hooks/useFood';
 import { FaRegTrashCan, FaArrowDown } from "react-icons/fa6";
+import { IoIosLogOut } from "react-icons/io";
 import LoginPage from './pages/LoginPage';
+import { getEmail } from './api/axios';
 
 
 
-function MainApp() {
+function MainApp({ onLogout }: { onLogout: () => void }) {
   // Form state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -40,6 +42,11 @@ function MainApp() {
       }
     });
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    onLogout();
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-8">
@@ -75,6 +82,15 @@ function MainApp() {
         {/* Server Status Section */}
         <header className="flex justify-between items-center p-4 bg-slate-800 rounded-lg border border-slate-700">
           <h1 className="text-xl font-bold text-blue-400">Macro Lens 🔍</h1>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-400">{getEmail()}</span>
+            <button
+              onClick={handleLogout}
+              className="text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+            >
+                <span className="text-2xl"><IoIosLogOut /></span>
+            </button>
+          </div>
           <div className="flex items-center gap-2 text-sm">
             <span className={`w-3 h-3 rounded-full ${health?.status === 'ok' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
             {isHealthLoading ? 'Checking...' : (health?.status === 'ok' ? 'Server online' : 'Server offline')}
@@ -229,7 +245,7 @@ function App() {
     return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
-  return <MainApp />;
+  return <MainApp onLogout={() => setIsAuthenticated(false)}/>;
 }
 
 export default App;

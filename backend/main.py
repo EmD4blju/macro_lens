@@ -44,8 +44,6 @@ def create_access_token(email:str) -> str:
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     try:
-        print("Token received:", credentials.credentials[:20])  # first 20 chars
-        print("JWT_SIGNATURE:", JWT_SIGNATURE)
         payload = jwt.decode(credentials.credentials, JWT_SIGNATURE, ALGORITHM)
         email = payload.get("sub")
         if not email:
