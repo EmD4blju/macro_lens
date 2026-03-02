@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import List, Optional
 from datetime import date
+from pydantic import BaseModel
 
 
 class User(SQLModel, table=True):
@@ -29,3 +30,7 @@ class FoodEntryCreate(SQLModel):
     protein: float = Field(description="Total estimated protein content in grams for the entire portion")
     fat: float = Field(description="Total estimated fat content in grams for the entire portion")
     carbohydrates: float = Field(description="Total estimated carbohydrate content in grams for the entire portion")
+    
+    
+class GoogleTokenRequest(BaseModel):
+    credential: str

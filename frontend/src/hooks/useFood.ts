@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import api from '../api/axios';
+import { api, getEmail } from '../api/axios';
 
 export interface FoodEntry {
   id: number
@@ -11,8 +11,6 @@ export interface FoodEntry {
   carbohydrates: number;
 }
 
-const FIXED_EMAIL = "test@example.com";
-
 export const useAddFood = () => {
   const queryClient = useQueryClient();
 
@@ -22,7 +20,7 @@ export const useAddFood = () => {
       formData.append('file', file); // 'file' musi pasować do nazwy w FastAPI
 
       // Email przesyłamy w URL tak jak wcześniej
-      const response = await api.post(`/add-food-image?email=test@example.com`, formData, {
+      const response = await api.post(`/add-food-image?email=${getEmail()}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -55,7 +53,7 @@ export const useFoodList = (date: Date) => {
     return useQuery({
         queryKey: ['user-foods', entryDate],
         queryFn: async () => {
-            const response = await api.get(`/user-foods/${FIXED_EMAIL}?entry_date=${entryDate}`);
+            const response = await api.get(`/user-foods/${getEmail()}?entry_date=${entryDate}`);
             return response.data;
         },
         refetchOnWindowFocus: false,

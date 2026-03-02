@@ -1,11 +1,17 @@
 from contextlib import asynccontextmanager
 from datetime import date
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel, Session, select
 from database import engine
-from models import User, FoodEntry, FoodEntryCreate
+from models import User, FoodEntry, GoogleTokenRequest
 from estimator import MacroEstimator
+from pydantic import BaseModel
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+from datetime import datetime, timedelta
+from jose import jwt
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,9 +28,47 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+JWT_SIGNATURE = os.getenv("JWT_SIGNATURE")
+ALGORITHM = "HS256"
+TOKEN_EXPIRE_MINUTES = 20
+
+def create_access_token(email:str) -> str:
+    payload = {
+        "sub": email,
+        "exp": datetime.now() + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
+    }
+    
+    return jwt.encode(payload, JWT_SIGNATURE, ALGORITHM)
+
 @app.get("/api/health-check")
 def health_check():
     return {"status": "ok", "message": "API is running!"}
+
+@app.post("/auth/google")
+def google_auth(body: GoogleTokenRequest):
+    try:
+        id_info = id_token.verify_oauth2_token(
+            body.credential,
+            google_requests.Request(),
+            os.getenv("GOOGLE_CLIENT_ID")
+        )
+        
+        email = id_info.get("email")
+        if not email:
+            raise HTTPException(status_code=400, detail="Email not found in token")
+    
+        with Session(engine) as session:
+            user = session.exec(select(User).where(User.email == email)).first()
+            if not user:
+                user = User(email = email)
+                session.add(user)
+                session.commit()
+                session.refresh(user)
+        
+        return {"access_token": create_access_token(email)}
+    
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid Google token")
 
 @app.post("/add-food-image")
 async def add_food_image(
@@ -62,21 +106,6 @@ def delete_food(food_id: int):
         session.delete(food_entry)
         session.commit()
         return {"status": "ok", "message": f"Deleted entry {food_id}"}
-
-@app.post("/add-food")
-def add_food(email:str, food_data: FoodEntryCreate):
-    with Session(engine) as session:
-        user = session.exec(select(User).where(User.email == email)).first()
-        if not user:
-            user = User(email=email)
-            session.add(user)
-            session.flush() 
-        
-        food_entry = FoodEntry(**food_data.model_dump(), user_id=user.id)
-        session.add(food_entry)
-        session.commit()
-        session.refresh(food_entry)
-        return food_entry
 
 @app.get("/list-foods")
 def get_foods():

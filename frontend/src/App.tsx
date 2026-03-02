@@ -3,10 +3,11 @@ import { useHealth } from './hooks/useHealth';
 import { useAddFood, useDeleteFood, useFoodList } from './hooks/useFood';
 import type { FoodEntry } from './hooks/useFood';
 import { FaRegTrashCan, FaArrowDown } from "react-icons/fa6";
+import LoginPage from './pages/LoginPage';
 
 
 
-function App() {
+function MainApp() {
   // Form state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -219,6 +220,16 @@ function App() {
       </div>
     </div>
   );
+}
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('access_token') !== null);
+
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
+  return <MainApp />;
 }
 
 export default App;
