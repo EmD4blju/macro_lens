@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { api, getEmail } from '../api/axios';
+import { api } from '../api/axios';
 
 export interface FoodEntry {
   id: number
@@ -20,7 +20,7 @@ export const useAddFood = () => {
       formData.append('file', file); // 'file' musi pasować do nazwy w FastAPI
 
       // Email przesyłamy w URL tak jak wcześniej
-      const response = await api.post(`/add-food-image?email=${getEmail()}`, formData, {
+      const response = await api.post(`/add-food-image`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
