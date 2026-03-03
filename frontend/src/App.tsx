@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { useHealth } from './hooks/useHealth';
 import { useAddFood, useDeleteFood, useFoodList } from './hooks/useFood';
-import { useUserStatus } from './hooks/useUserAccountStatus';
+import { useUserStatus } from './hooks/useUser';
 import type { FoodEntry } from './hooks/useFood';
 import { FaRegTrashCan, FaArrowDown } from "react-icons/fa6";
 import { IoIosLogOut } from "react-icons/io";
+import { IoPeopleOutline } from 'react-icons/io5';
 import LoginPage from './pages/LoginPage';
 import LoadingPage from './pages/LoadingPage';
 import WaitingPage from './pages/WaitingPage';
 import RejectedPage from './pages/RejectedPage';
 import { getEmail } from './api/axios';
+import { UsersOverlay } from './components/UserOverlay';
 
-function MainApp({ onLogout }: { onLogout: () => void }) {
+function MainApp({ onLogout, adminControls }: { onLogout: () => void; adminControls?: React.ReactNode }) {
   // Form state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -54,7 +56,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-8">
 
-      {/* Delete confirmation modal */}
+      {/* Delete confirmation overlay */}
       {pendingDeleteId !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-6 w-80 flex flex-col gap-4">
@@ -81,7 +83,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      {/* Logout confirmation modal */}
+      {/* Logout confirmation overlay */}
       {pendingLogout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-6 w-80 flex flex-col gap-4">
@@ -113,6 +115,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
           <h1 className="text-xl font-bold text-blue-400">Macro Lens 🔍</h1>
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-400">{getEmail()}</span>
+            {adminControls}
             <button
               onClick={() => {setPendingLogout(true)}}
               className="text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
@@ -267,7 +270,26 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   );
 }
 
+function AdminApp({ onLogout }: { onLogout: () => void }) {
+  const [showUsers, setShowUsers] = useState(false);
 
+  return (
+    <>
+      {showUsers && <UsersOverlay onClose={() => setShowUsers(false)} />}
+      <MainApp 
+        onLogout={onLogout}
+        adminControls={
+          <button
+            onClick={() => setShowUsers(true)}
+            className="text-slate-400 hover:text-blue-400 transition-colors cursor-pointer text-lg"
+          >
+            <IoPeopleOutline />
+          </button>
+        }
+      />
+    </>
+  );
+}
 
 function App() {
   const [hasToken, setHasToken] = useState<boolean>(localStorage.getItem("access_token") !== null);
@@ -286,7 +308,9 @@ function App() {
   switch(data?.account_status){
     case "pending": return <WaitingPage onLogout={handleLogout}/>
     case "rejected": return <RejectedPage onLogout={handleLogout}/>
-    case "approved": return <MainApp onLogout={handleLogout}/>
+    case "approved": return data?.role === "admin"
+      ? <AdminApp onLogout={handleLogout}/>
+      : <MainApp onLogout={handleLogout}/>
   }
 
   return <LoadingPage/>
