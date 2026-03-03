@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import date
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import Session, select
 from database import engine
 from models import User, UserRole, UserAccountStatus, FoodEntry, GoogleTokenRequest
 from estimator import MacroEstimator
@@ -11,12 +11,8 @@ from google.auth.transport import requests as google_requests
 from security import create_access_token, verify_admin, verify_status, verify_token
 import os
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    SQLModel.metadata.create_all(engine)
-    yield
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -119,7 +115,9 @@ def get_users(email: str = Depends(verify_admin)):
 @app.patch("/admin/users/{user_id}/status")
 def update_user_status(user_id: int, status: UserAccountStatus = Query(...), email: str = Depends(verify_admin)):
     with Session(engine) as session:
-        user = session.get(User, user_id)   
+        user = session.get(User, user_id)  
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found") 
         if user.email == email:
             raise HTTPException(status_code=403, detail="Cannot change your own status")     
         user.account_status = status
