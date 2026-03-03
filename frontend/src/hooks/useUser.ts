@@ -52,3 +52,15 @@ export const useUpdateUserStatus = () => {
         }
     })
 }
+
+export const useDeleteUserAccount = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (userId: number) => {
+            const response = await api.delete(`/admin/users/${userId}/delete`);
+            return response.data
+        },
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-users"] })
+    })
+}

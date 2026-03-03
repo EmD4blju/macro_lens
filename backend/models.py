@@ -20,7 +20,7 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True)
     role: UserRole = Field(default=UserRole.user)
     account_status: UserAccountStatus = Field(default=UserAccountStatus.pending)
-    food_entries: List["FoodEntry"] = Relationship(back_populates="user")
+    food_entries: List["FoodEntry"] = Relationship(back_populates="user", cascade_delete=True)
 
 class FoodEntry(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

@@ -1,5 +1,5 @@
 import { getEmail } from "../api/axios";
-import { useGetUsers, useUpdateUserStatus } from "../hooks/useUser";
+import { useGetUsers, useUpdateUserStatus, useDeleteUserAccount } from "../hooks/useUser";
 
 interface UsersOverlayProps {
     onClose: () => void;
@@ -7,7 +7,8 @@ interface UsersOverlayProps {
 
 export const UsersOverlay = ({ onClose }: UsersOverlayProps) => {
     const { data: users, isLoading } = useGetUsers();
-    const { mutate: updateStatus, isPending } = useUpdateUserStatus();
+    const { mutate: updateStatus, isPending: isPendingUpdateUserStatus } = useUpdateUserStatus();
+    const { mutate: removeUserAccount, isPending: isPendingDeleteUserAccount } = useDeleteUserAccount();
     const adminEmail = getEmail();
 
     return (
@@ -54,7 +55,7 @@ export const UsersOverlay = ({ onClose }: UsersOverlayProps) => {
                                             {user.account_status !== "approved" && (
                                                 <button
                                                     onClick={() => updateStatus({ userId: user.id, status: "approved" })}
-                                                    disabled={isPending}
+                                                    disabled={isPendingUpdateUserStatus}
                                                     className="px-3 py-1 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                                                 >
                                                     Approve
@@ -63,10 +64,19 @@ export const UsersOverlay = ({ onClose }: UsersOverlayProps) => {
                                             {user.account_status !== "rejected" && (
                                                 <button
                                                     onClick={() => updateStatus({ userId: user.id, status: "rejected" })}
-                                                    disabled={isPending}
+                                                    disabled={isPendingUpdateUserStatus}
                                                     className="px-3 py-1 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                                                 >
                                                     Reject
+                                                </button>
+                                            )}
+                                            {user.account_status === "rejected" && (
+                                                <button
+                                                    onClick={() => removeUserAccount(user.id)}
+                                                    disabled={isPendingDeleteUserAccount}
+                                                    className="px-3 py-1 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                                >
+                                                    Remove
                                                 </button>
                                             )}
                                         </>

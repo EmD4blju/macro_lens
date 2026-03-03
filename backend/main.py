@@ -85,7 +85,7 @@ async def add_food_image(
         session.commit()
         session.refresh(food_entry)
         
-    return {"status": "processed"}
+    return {"status": "ok"}
 
 @app.delete("/user/food/{food_id}/delete")
 def delete_food(food_id: int, email: str = Depends(verify_status)):
@@ -126,6 +126,18 @@ def update_user_status(user_id: int, status: UserAccountStatus = Query(...), ema
         session.commit()
         session.refresh(user)
         return user
+    
+@app.delete("/admin/users/{user_id}/delete")
+def delete_user_account(user_id: int, email: str = Depends(verify_admin)):
+    with Session(engine) as session:
+        user = session.get(User, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        if user.email == email:
+            raise HTTPException(status_code=403, detail="Cannot delete your own account")
+        session.delete(user)
+        session.commit()
+        return {"status": "ok", "message": f"Deleted user {user_id}"}
     
 if __name__ == "__main__":
     import uvicorn
