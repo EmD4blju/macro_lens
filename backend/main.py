@@ -1,14 +1,14 @@
 from contextlib import asynccontextmanager
 from datetime import date
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel, Session, select
 from database import engine
-from models import User, FoodEntry, GoogleTokenRequest
+from models import User, UserRole, UserAccountStatus, FoodEntry, GoogleTokenRequest
 from estimator import MacroEstimator
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-from security import create_access_token, verify_token
+from security import create_access_token, verify_admin, verify_status
 import os
 
 @asynccontextmanager
@@ -26,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/api/health-check")
+@app.get("/api/health")
 def health_check():
     return {"status": "ok", "message": "API is running!"}
 
@@ -47,6 +47,9 @@ def google_auth(body: GoogleTokenRequest):
             user = session.exec(select(User).where(User.email == email)).first()
             if not user:
                 user = User(email = email)
+                if email == os.getenv('ADMIN_EMAIL'):
+                    user.role = UserRole.admin
+                    user.account_status = UserAccountStatus.approved
                 session.add(user)
                 session.commit()
                 session.refresh(user)
@@ -56,9 +59,9 @@ def google_auth(body: GoogleTokenRequest):
     except ValueError:
         raise HTTPException(status_code=401, detail="Invalid Google token")
 
-@app.post("/add-food-image")
+@app.post("/user/food/add")
 async def add_food_image(
-    email: str = Depends(verify_token),
+    email: str = Depends(verify_status),
     file: UploadFile = File(...),
 ):
     #~ Read incoming image bytes
@@ -71,11 +74,6 @@ async def add_food_image(
     #~ Save the estimated food entry to the database
     with Session(engine) as session:
         user = session.exec(select(User).where(User.email == email)).first()
-        if not user:
-            user = User(email=email)
-            session.add(user)
-            session.flush() 
-        
         food_entry = FoodEntry(**food_entry_data.model_dump(), user_id=user.id)
         session.add(food_entry)
         session.commit()
@@ -83,30 +81,43 @@ async def add_food_image(
         
     return {"status": "processed"}
 
-@app.delete("/delete-food/{food_id}")
-def delete_food(food_id: int, email: str = Depends(verify_token)):
+@app.delete("/user/food/{food_id}/delete")
+def delete_food(food_id: int, email: str = Depends(verify_status)):
     with Session(engine) as session:
+        user = session.exec(select(User).where(User.email == email)).first()
         food_entry = session.get(FoodEntry, food_id)
         if not food_entry:
-            return {"error": "Food entry not found"}
+            raise HTTPException(status_code=404, detail="Food entry not found")
+        if food_entry.user_id != user.id:
+            raise HTTPException(status_code=403, detail="Forbidden")
         session.delete(food_entry)
         session.commit()
         return {"status": "ok", "message": f"Deleted entry {food_id}"}
     
-@app.get("/user-foods")
-def get_user_foods(entry_date: date, email: str = Depends(verify_token)):
+@app.get("/user/foods")
+def get_user_foods(entry_date: date, email: str = Depends(verify_status)):
     with Session(engine) as session:
         user = session.exec(select(User).where(User.email == email)).first()
-        if not user:
-            return {"error": "User not found"}
-        
         query = select(FoodEntry).where(
             FoodEntry.user_id == user.id,
             FoodEntry.creation_date == entry_date
         )
-        
         return session.exec(query).all()
     
+@app.get("/admin/users")
+def get_users(email: str = Depends(verify_admin)):
+    with Session(engine) as session:
+        users = session.exec(select(User)).all()
+        return users
+    
+@app.patch("/admin/users/{user_id}/status")
+def update_user_status(user_id: int, status: UserAccountStatus = Query(...), email: str = Depends(verify_admin)):
+    with Session(engine) as session:
+        user = session.get(User, user_id)        
+        user.account_status = status
+        session.commit()
+        session.refresh(user)
+        return user
     
 if __name__ == "__main__":
     import uvicorn

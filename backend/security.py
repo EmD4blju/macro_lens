@@ -3,6 +3,10 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi import Depends, HTTPException
+from sqlmodel import Session, select
+from database import engine
+from models import User, UserRole, UserAccountStatus
+
 
 JWT_SIGNATURE = os.getenv("JWT_SIGNATURE")
 ALGORITHM = "HS256"
@@ -26,3 +30,17 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         return email
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+def verify_admin(email: str = Depends(verify_token)) -> str:
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.email == email)).first()
+        if not user or user.role != UserRole.admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        return email
+    
+def verify_status(email: str = Depends(verify_token)) -> str:
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.email == email)).first()
+        if not user or user.account_status != UserAccountStatus.approved:
+            raise HTTPException(status_code=403, detail="Account inactive")
+        return email
