@@ -37,7 +37,7 @@ export const UsersOverlay = ({ onClose }: UsersOverlayProps) => {
                         {users?.map(user => (
                             <div key={user.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg border border-slate-600">
                                 <div className="flex flex-col gap-1">
-                                    <span className="text-sm text-slate-100">{user.email}</span>
+                                    <span className="text-sm text-slate-100"><b>{user.email}</b> <i>{user.role}</i></span>
                                     <span className={`text-xs ${
                                         user.account_status === "approved" ? "text-emerald-400" :
                                         user.account_status === "pending" ? "text-yellow-400" :
