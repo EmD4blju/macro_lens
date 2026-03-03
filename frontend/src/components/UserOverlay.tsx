@@ -1,3 +1,4 @@
+import { getEmail } from "../api/axios";
 import { useGetUsers, useUpdateUserStatus } from "../hooks/useUser";
 
 interface UsersOverlayProps {
@@ -7,6 +8,7 @@ interface UsersOverlayProps {
 export const UsersOverlay = ({ onClose }: UsersOverlayProps) => {
     const { data: users, isLoading } = useGetUsers();
     const { mutate: updateStatus, isPending } = useUpdateUserStatus();
+    const adminEmail = getEmail();
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -45,23 +47,29 @@ export const UsersOverlay = ({ onClose }: UsersOverlayProps) => {
                                     </span>
                                 </div>
                                 <div className="flex gap-2">
-                                    {user.account_status !== "approved" && (
-                                        <button
-                                            onClick={() => updateStatus({ userId: user.id, status: "approved" })}
-                                            disabled={isPending}
-                                            className="px-3 py-1 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                                        >
-                                            Approve
-                                        </button>
-                                    )}
-                                    {user.account_status !== "rejected" && (
-                                        <button
-                                            onClick={() => updateStatus({ userId: user.id, status: "rejected" })}
-                                            disabled={isPending}
-                                            className="px-3 py-1 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                                        >
-                                            Reject
-                                        </button>
+                                    {user.email === adminEmail ? (
+                                        <span className="text-xs text-slate-500 italic">you</span>
+                                    ) : (
+                                        <>
+                                            {user.account_status !== "approved" && (
+                                                <button
+                                                    onClick={() => updateStatus({ userId: user.id, status: "approved" })}
+                                                    disabled={isPending}
+                                                    className="px-3 py-1 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                                >
+                                                    Approve
+                                                </button>
+                                            )}
+                                            {user.account_status !== "rejected" && (
+                                                <button
+                                                    onClick={() => updateStatus({ userId: user.id, status: "rejected" })}
+                                                    disabled={isPending}
+                                                    className="px-3 py-1 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                                >
+                                                    Reject
+                                                </button>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>

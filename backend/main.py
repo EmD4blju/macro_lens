@@ -119,7 +119,9 @@ def get_users(email: str = Depends(verify_admin)):
 @app.patch("/admin/users/{user_id}/status")
 def update_user_status(user_id: int, status: UserAccountStatus = Query(...), email: str = Depends(verify_admin)):
     with Session(engine) as session:
-        user = session.get(User, user_id)        
+        user = session.get(User, user_id)   
+        if user.email == email:
+            raise HTTPException(status_code=403, detail="Cannot change your own status")     
         user.account_status = status
         session.commit()
         session.refresh(user)
