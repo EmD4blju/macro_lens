@@ -20,7 +20,7 @@ export const useAddFood = () => {
       formData.append('file', file); // 'file' musi pasować do nazwy w FastAPI
 
       // Email przesyłamy w URL tak jak wcześniej
-      const response = await api.post(`/add-food-image`, formData, {
+      const response = await api.post(`/user/food/add`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -38,7 +38,7 @@ export const useDeleteFood = () => {
 
     return useMutation({
         mutationFn: async (foodId: number) => {
-            const response = await api.delete(`/delete-food/${foodId}`);
+            const response = await api.delete(`/user/food/${foodId}/delete`);
             return response.data
         },
         onSuccess: () => {
@@ -53,7 +53,7 @@ export const useFoodList = (date: Date) => {
     return useQuery({
         queryKey: ['user-foods', entryDate],
         queryFn: async () => {
-            const response = await api.get(`/user-foods?entry_date=${entryDate}`);
+            const response = await api.get(`/user/foods?entry_date=${entryDate}`);
             return response.data;
         },
         refetchOnWindowFocus: false,

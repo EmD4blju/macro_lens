@@ -10,7 +10,7 @@ export const useHealth = () => {
   return useQuery<HealthResponse>({
     queryKey: ['healthCheck'],
     queryFn: async () => {
-      const response = await api.get('/api/health-check');
+      const response = await api.get('/api/health');
       return response.data;
     },
     refetchInterval: 30000, 

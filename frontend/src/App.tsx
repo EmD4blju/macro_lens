@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useHealth } from './hooks/useHealth';
 import { useAddFood, useDeleteFood, useFoodList } from './hooks/useFood';
+import { useUserStatus } from './hooks/useUserAccountStatus';
 import type { FoodEntry } from './hooks/useFood';
 import { FaRegTrashCan, FaArrowDown } from "react-icons/fa6";
 import { IoIosLogOut } from "react-icons/io";
 import LoginPage from './pages/LoginPage';
+import LoadingPage from './pages/LoadingPage';
+import WaitingPage from './pages/WaitingPage';
+import RejectedPage from './pages/RejectedPage';
 import { getEmail } from './api/axios';
-
-
 
 function MainApp({ onLogout }: { onLogout: () => void }) {
   // Form state
@@ -96,7 +98,6 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
               </button>
               <button
                 onClick={() => { handleLogout(); setPendingLogout(false); }}
-                disabled={isDeleting}
                 className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors cursor-pointer disabled:opacity-50"
               >
                 Logout
@@ -266,14 +267,29 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   );
 }
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('access_token') !== null);
 
-  if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
+
+function App() {
+  const [hasToken, setHasToken] = useState<boolean>(localStorage.getItem("access_token") !== null);
+  const {data, isLoading, isError} = useUserStatus(hasToken)
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token")
+    setHasToken(false)
   }
 
-  return <MainApp onLogout={() => setIsAuthenticated(false)}/>;
+  if (!hasToken) return <LoginPage onLoginSuccess={() => setHasToken(true)}/>
+  if (isLoading) return <LoadingPage />
+  if (isError) return <LoginPage onLoginSuccess={() => setHasToken(true)} />
+
+
+  switch(data?.account_status){
+    case "pending": return <WaitingPage onLogout={handleLogout}/>
+    case "rejected": return <RejectedPage onLogout={handleLogout}/>
+    case "approved": return <MainApp onLogout={handleLogout}/>
+  }
+
+  return <LoadingPage/>
 }
 
 export default App;

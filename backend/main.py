@@ -8,7 +8,7 @@ from models import User, UserRole, UserAccountStatus, FoodEntry, GoogleTokenRequ
 from estimator import MacroEstimator
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-from security import create_access_token, verify_admin, verify_status
+from security import create_access_token, verify_admin, verify_status, verify_token
 import os
 
 @asynccontextmanager
@@ -58,6 +58,12 @@ def google_auth(body: GoogleTokenRequest):
     
     except ValueError:
         raise HTTPException(status_code=401, detail="Invalid Google token")
+    
+@app.get("/user/status")
+def get_user_status(email: str = Depends(verify_token)):
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.email == email)).first()
+        return {"account_status": user.account_status, "role": user.role}
 
 @app.post("/user/food/add")
 async def add_food_image(
