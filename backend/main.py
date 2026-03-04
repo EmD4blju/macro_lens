@@ -7,7 +7,7 @@ from models import User, UserRole, UserAccountStatus, FoodEntry, GoogleTokenRequ
 from estimator import MacroEstimator
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-from security import create_access_token, verify_admin, verify_status, verify_token
+from security import create_access_token, verify_admin, verify_status, verify_token, verify_image_integrity
 import os
 
 
@@ -63,7 +63,7 @@ def get_user_status(email: str = Depends(verify_token)):
 @app.post("/user/food/add")
 async def add_food_image(
     email: str = Depends(verify_status),
-    file: UploadFile = File(...),
+    file: UploadFile = Depends(verify_image_integrity),
 ):
     #~ Read incoming image bytes
     image_bytes = await file.read()

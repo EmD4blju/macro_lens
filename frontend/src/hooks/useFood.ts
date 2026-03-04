@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { api } from '../api/axios';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 
 export interface FoodEntry {
   id: number
@@ -29,6 +31,13 @@ export const useAddFood = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-foods'] });
+      toast.success("Food entry added!")
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)){
+        const detail = error.response?.data?.detail;
+        toast.error(detail ?? "Something went wrong!")
+      }
     },
   });
 };

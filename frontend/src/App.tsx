@@ -12,6 +12,7 @@ import WaitingPage from './pages/WaitingPage';
 import RejectedPage from './pages/RejectedPage';
 import { getEmail } from './api/axios';
 import { UsersOverlay } from './components/UserOverlay';
+import { Toaster } from 'react-hot-toast';
 
 function MainApp({ onLogout, adminControls }: { onLogout: () => void; adminControls?: React.ReactNode }) {
   // Form state
@@ -55,6 +56,18 @@ function MainApp({ onLogout, adminControls }: { onLogout: () => void; adminContr
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-8">
+
+      {/* Notification window */}
+       <Toaster 
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: '#1e293b',
+            color: '#f1f5f9',
+            border: '1px solid #334155',
+          },
+        }}
+      />
 
       {/* Delete confirmation overlay */}
       {pendingDeleteId !== null && (
