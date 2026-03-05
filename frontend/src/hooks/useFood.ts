@@ -52,6 +52,7 @@ export const useDeleteFood = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['user-foods']})
+            toast.success("Food entry deleted!")
         }
     })
 }

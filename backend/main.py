@@ -36,7 +36,7 @@ def google_auth(body: GoogleTokenRequest):
         
         email = id_info.get("email")
         if not email:
-            raise HTTPException(status_code=400, detail="Email not found in token")
+            raise HTTPException(status_code=400, detail="Email not found in token!")
     
         with Session(engine) as session:
             user = session.exec(select(User).where(User.email == email)).first()
@@ -52,7 +52,7 @@ def google_auth(body: GoogleTokenRequest):
         return {"access_token": create_access_token(email)}
     
     except ValueError:
-        raise HTTPException(status_code=401, detail="Invalid Google token")
+        raise HTTPException(status_code=401, detail="Invalid Google token!")
     
 @app.get("/user/status")
 def get_user_status(email: str = Depends(verify_token)):
@@ -61,7 +61,7 @@ def get_user_status(email: str = Depends(verify_token)):
         return {"account_status": user.account_status, "role": user.role}
 
 @app.post("/user/food/add")
-async def add_food_image(
+async def add_food(
     email: str = Depends(verify_status),
     file: UploadFile = Depends(verify_image_integrity),
 ):

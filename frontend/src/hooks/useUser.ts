@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "../api/axios";
+import toast from "react-hot-toast";
 
 export type UserStatus = "pending" | "rejected" | "approved"
 export type UserRole = "admin" | "user"
@@ -49,6 +50,7 @@ export const useUpdateUserStatus = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+            toast.success("User status updated!")
         }
     })
 }
@@ -61,6 +63,9 @@ export const useDeleteUserAccount = () => {
             const response = await api.delete(`/admin/users/${userId}/delete`);
             return response.data
         },
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-users"] })
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+            toast.success("User account removed!")
+        }
     })
 }
