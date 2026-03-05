@@ -150,7 +150,16 @@ function MainApp({ onLogout, adminControls }: { onLogout: () => void; adminContr
               {selectedFile ? (
                 <span className="text-slate-300 text-sm font-medium">{selectedFile.name}</span>
               ) : (
-                <span className="text-slate-500 text-sm">Click to upload a food photo</span>
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-slate-500 text-sm">Click to upload a food photo</span>
+                  <div className="flex gap-2">
+                    {["JPEG", "PNG", "WEBP"].map(format => (
+                      <span key={format} className="text-xs text-slate-600 bg-slate-800 border border-slate-700 rounded px-2 py-0.5">
+                        {format}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
               <input
                 type="file"
@@ -160,6 +169,8 @@ function MainApp({ onLogout, adminControls }: { onLogout: () => void; adminContr
                 required
               />
             </label>
+
+            
 
             <button 
               type="submit" 
