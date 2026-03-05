@@ -55,7 +55,7 @@ function MainApp({ onLogout, adminControls }: { onLogout: () => void; adminContr
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-8">
+    <div className="min-h-screen bg-slate-900 text-slate-100 p-8 pt-24">
 
       {/* Notification window */}
        <Toaster 
@@ -121,26 +121,33 @@ function MainApp({ onLogout, adminControls }: { onLogout: () => void; adminContr
           </div>
         </div>
       )}
+
+      
+      {/* Fixed Header */}
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-3xl flex items-center justify-between px-6 py-4 bg-slate-800 rounded-xl border border-slate-700 shadow-2xl">
+        {/* Left — server status */}
+        <div className="flex items-center gap-2 text-sm w-40">
+          <span className={`w-3 h-3 rounded-full shrink-0 ${health?.status === 'ok' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
+          <span className="text-slate-400 hidden sm:inline">{isHealthLoading ? 'Checking...' : (health?.status === 'ok' ? 'Server online' : 'Server offline')}</span>
+        </div>
+
+        {/* Centre — app name */}
+        <h1 className="text-xl font-bold text-blue-400 absolute left-1/2 -translate-x-1/2">Macro Lens 🔍</h1>
+
+        {/* Right — account controls */}
+        <div className="flex items-center gap-3 w-40 justify-end">
+          <span className="text-xs text-slate-400 truncate max-w-24 hidden sm:inline">{getEmail()}</span>
+          {adminControls}
+          <button
+            onClick={() => setPendingLogout(true)}
+            className="text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+          >
+            <span className="text-2xl"><IoIosLogOut /></span>
+          </button>
+        </div>
+      </header>
+
       <div className="max-w-xl mx-auto space-y-8">
-        
-        {/* Server Status Section */}
-        <header className="flex justify-between items-center p-4 bg-slate-800 rounded-lg border border-slate-700">
-          <h1 className="text-xl font-bold text-blue-400">Macro Lens 🔍</h1>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-400">{getEmail()}</span>
-            {adminControls}
-            <button
-              onClick={() => {setPendingLogout(true)}}
-              className="text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
-            >
-                <span className="text-2xl"><IoIosLogOut /></span>
-            </button>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <span className={`w-3 h-3 rounded-full ${health?.status === 'ok' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
-            {isHealthLoading ? 'Checking...' : (health?.status === 'ok' ? 'Server online' : 'Server offline')}
-          </div>
-        </header>
 
         {/* Add Entry Form */}
         <section className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
