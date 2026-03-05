@@ -11,7 +11,7 @@ const decodeToken = (token: string): JWTPayload => {
 }
 
 export const getEmail = (): string => {
-  const token = localStorage.getItem("access_token");
+  const token = sessionStorage.getItem("access_token");
   if (!token) return "";
 
   const decoded_token = decodeToken(token)
@@ -27,7 +27,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+  const token = sessionStorage.getItem("access_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -38,7 +38,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401){
-      localStorage.removeItem("access_token");
+      sessionStorage.removeItem("access_token");
       window.location.href = "/";
     }
     return Promise.reject(error)

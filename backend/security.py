@@ -12,7 +12,7 @@ import io
 
 JWT_SIGNATURE = os.getenv("JWT_SIGNATURE")
 ALGORITHM = "HS256"
-TOKEN_EXPIRE_HOURS = 4
+TOKEN_EXPIRE_HOURS = 1
 security = HTTPBearer()
 
 def create_access_token(email:str) -> str:

@@ -50,7 +50,7 @@ function MainApp({ onLogout, adminControls }: { onLogout: () => void; adminContr
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
+    sessionStorage.removeItem("access_token");
     onLogout();
   }
 
@@ -305,11 +305,11 @@ function AdminApp({ onLogout }: { onLogout: () => void }) {
 }
 
 function App() {
-  const [hasToken, setHasToken] = useState<boolean>(localStorage.getItem("access_token") !== null);
+  const [hasToken, setHasToken] = useState<boolean>(sessionStorage.getItem("access_token") !== null);
   const {data, isLoading, isError} = useUserStatus(hasToken)
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token")
+    sessionStorage.removeItem("access_token")
     setHasToken(false)
   }
 

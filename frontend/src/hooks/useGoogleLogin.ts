@@ -14,7 +14,7 @@ export const useGoogleAuth = () => {
             return response.data;
         },
         onSuccess: (data) => {
-            localStorage.setItem("access_token", data.access_token);
+            sessionStorage.setItem("access_token", data.access_token);
             toast.success("Authentication successful!")
         },
         onError: (error) => {
