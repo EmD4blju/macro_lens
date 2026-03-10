@@ -25,3 +25,7 @@ dist-ssr
 
 # Environment variables
 .env
+
+# Firebase
+.firebase/
+firebease-debug.log
