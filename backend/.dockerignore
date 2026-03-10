@@ -1,0 +1,39 @@
+# ── Secrets & environment variables ─────────────────────────────────────────
+.env
+.env.*
+
+# ── Python artifacts ─────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.pyi
+
+# ── Virtual environment (rebuilt inside the image) ───────────────────────────
+.venv/
+
+# ── User-uploaded data (mount as a volume at runtime) ────────────────────────
+images/
+
+# ── Version control ──────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── Docker files (not needed inside the image) ───────────────────────────────
+Dockerfile
+.dockerignore
+docker-compose.yaml
+
+# ── Build/distribution artefacts ─────────────────────────────────────────────
+build/
+dist/
+*.egg-info/
+
+# ── Documentation & tooling config ───────────────────────────────────────────
+README.md
+.python-version
+
+# ── OS / editor noise ────────────────────────────────────────────────────────
+.DS_Store
+*.swp
+*.swo
